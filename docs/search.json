@@ -1,0 +1,12 @@
+{
+  "articles": [
+    {
+      "path": "index.html",
+      "title": "Blog do Saulo",
+      "author": [],
+      "contents": "\r\n\r\n\r\n\r\n",
+      "last_modified": "2021-04-07T19:17:58-03:00"
+    }
+  ],
+  "collections": ["posts/posts.json"]
+}
