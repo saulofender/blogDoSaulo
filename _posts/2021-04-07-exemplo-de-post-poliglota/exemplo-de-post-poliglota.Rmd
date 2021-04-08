@@ -34,16 +34,13 @@ library(rmarkdown)
 paged_table(mtcars)
 ```
 
+<!-- ## Código no Python -->
+<!-- # import pandas as pd -->
+<!-- # r.mtcars -->
 
-## Código no Python
+## Código no Python 
 ```{python}
-import pandas as pd
-r.mtcars
-```
-
-### Objeto do Python
-```{python}
-obj_do_python = "alô mãe" + "to no python!"
+obj_do_python = "alô mãe" + " to no python!"
 obj_do_python
 ```
 
