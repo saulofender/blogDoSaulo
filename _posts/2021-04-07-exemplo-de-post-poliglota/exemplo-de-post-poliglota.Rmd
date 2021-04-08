@@ -37,14 +37,13 @@ paged_table(mtcars)
 
 ## Código no Python
 ```{python}
-devtools::install_github("rstudio/reticulate")
 import pandas as pd
 r.mtcars
 ```
 
 ### Objeto do Python
 ```{python}
-obj_do_python = "alo mãe" + "to no python!"
+obj_do_python = "alô mãe" + "to no python!"
 obj_do_python
 ```
 
