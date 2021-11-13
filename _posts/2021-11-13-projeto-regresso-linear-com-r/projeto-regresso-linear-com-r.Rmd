@@ -1,0 +1,309 @@
+---
+title: "Projeto Regressão Linear com R"
+description: |
+  Análise das características do carro que explicam sua eficiência.
+author:
+  - name: Saulo Valentim
+    url: https://github.com/saulofender
+date: 2021-11-13
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(kableExtra)
+library(GGally)
+library(gridExtra)
+library(ggcorrplot)
+library(lmtest)
+```
+
+## Introdução
+
+No ano de 1974 houve um aumento considerável no preço médio do barril de petróleo ocasionado pela crise petrolífera ocorrida no ano anterior. A revista Motor Trend US neste período publicou uma tabela informativa contendo dados de consumo de combustível e 10 aspectos de design e desempenhos para 32 automóveis produzidos entre 1973 e 1974. Estes dados constam na base `mtcars` que será utilizada neste trabalho.
+
+O presente estudo consiste em buscar responder a seguinte questão: 
+Quais características do carro explicam sua a eficiência (milhas por galão de combustível).
+
+Partiremos da hipótese que todas as variáveis explicativas são relevantes para explicar a eficiencia dos carros dado pela coluna `mpg`.
+
+
+## Análise Exploratória
+
+A base de dados é composta por 32 observações e 11 variáveis conforme tabela abaixo:
+
+```{r}
+# Análise da base mtcars
+mtcars <- mtcars
+glimpse(mtcars)
+```
+
+######### Variável resposta:
+- mpg: é o consumo medido em milhas por galões;
+
+######### Variáveis explicativas:
+- cyl: é o número de cilindros que o motor do veículo possui;
+- disp: é a cilindrada do veículo, medido em polegadas cúbicas;
+- hp: é a potência bruta, medida em cavalos (horse power);
+- drat: é a relação do eixo traseiro do veículo;
+- wt: é o peso, medido em 1 mil libras;
+- qsec: é o tempo de 1/4 de milha;
+- vs: indica se o motor é em V (vs = 0) ou em linha (vs = 1);
+- am: informa se a transmissão é automática (am = 0) ou manual (am = 1);
+- gear: indica o número de marchas, excluindo a ré;
+- carb: informa o número de carburadores do veículo.
+
+
+```{r}
+# Resumo estatístico das variáveis
+resumo_estat <- mtcars %>%
+  select(-am,-vs) %>% 
+  pivot_longer(everything()) %>%
+  group_by(name) %>% 
+  summarise_at("value", 
+               list(Missing =~sum(is.na(.)),media=~mean(.),
+                    desvPad=~sd(.), minimo=~min(.),
+                    Q1=~quantile(.,0.25),med=~median(.),
+                    Q3=~quantile(.,0.75),maxi=~max(.))) %>% 
+  mutate_if(is.numeric, format, digits=3,nsmall = 2)
+
+colnames(resumo_estat) <- c('Variável', 'Missing', 'Média',
+                      'Desvio padrão', 'Mínimo', 'Q1',
+                      'Mediana', 'Q3', 'Máximo')
+
+kable(resumo_estat, booktabs = T, caption = 'Estatística descritiva das variáveis', longtable = T) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+Podemos observar no resumo estatístico das variáveis que não há valores nulos "`NAs`" e sendo assim, não será preciso realizar algum ajuste ou exclusão de valores na base de dados.
+
+
+```{r, fig.height= 6, fig.width= 6, fig.align='center', warning=FALSE}
+# Matriz de Correlação
+mtcars %>% 
+  cor() %>% 
+  round(., 1) %>% 
+  ggcorrplot(., type = "lower", hc.order = TRUE,
+             method = "circle", lab = TRUE, lab_size = 3, 
+             colors = c("firebrick", "white", "dodgerblue4"),
+             title = "Matriz de Correlação")
+```
+
+Na matriz de correlação podemos observar que a variável respota `mpg` se correlaciona com as demais variáveis, sendo por exemplo de forma forte e positiva com `drat e vs` e forte negativa com `wt, hp, cyl e disp`. Além disso, outras variáveis explicativas possuem forte correlação entre si, por exemplo, a variável `disp` possui forte correlação positiva com `wt e cyl`, o que nos leva a necessidade de uma análise mais minuciosa sobre possíveis indícios de multicolinearidade.
+
+
+```{r, fig.height= 7, fig.width= 7, fig.align='center'}
+# Gráfico de dispersão das variáveis
+fig1 <- mtcars %>% 
+  ggplot(aes(x=cyl,y=mpg)) +
+  geom_point() +
+  labs(x = 'Número de cilindros (cyl)', y = 'Consumo (mpg)')
+
+fig2 <- mtcars %>% 
+  ggplot(aes(x=disp,y=mpg)) +
+  geom_point() +
+  labs(x = 'Cilindradas (disp)', y = 'Consumo (mpg)')
+
+fig3 <- mtcars %>% 
+  ggplot(aes(x=hp,y=mpg)) +
+  geom_point() +
+  labs(x = 'Potência (hp)', y = 'Consumo (mpg)') 
+
+fig4 <- mtcars %>% 
+  ggplot(aes(x=drat,y=mpg)) +
+  geom_point() +
+  labs(x = 'Relação de eixo traseiro (drat)', y = 'Consumo (mpg)') 
+
+fig5 <- mtcars %>% 
+  ggplot(aes(x=wt,y=mpg)) +
+  geom_point() +
+  labs(x = 'Peso (wt)', y = 'Consumo (mpg)')
+
+fig6 <- mtcars %>% 
+  ggplot(aes(x=qsec,y=mpg)) +
+  geom_point() +
+  labs(x = 'Tempo (qsec)', y = 'Consumo (mpg)')
+
+fig7 <- mtcars %>% 
+  ggplot(aes(x=vs,y=mpg)) +
+  geom_point() +
+  labs(x = 'Tipo de motor (vs)', y = 'Consumo (mpg)') 
+
+fig8 <- mtcars %>% 
+  ggplot(aes(x=am,y=mpg)) +
+  geom_point() +
+  labs(x = 'Tipo de transmissão (am)', y = 'Consumo (mpg)') 
+
+fig9 <- mtcars %>% 
+  ggplot(aes(x=gear,y=mpg)) +
+  geom_point() +
+  labs(x = 'Número de marchas (gear)', y = 'Consumo (mpg)') 
+
+fig10 <- mtcars %>% 
+  ggplot(aes(x=carb,y=mpg)) +
+  geom_point() +
+  labs(x = 'Número de carburadores (carb)', y = 'Consumo (mpg)') 
+
+grid.arrange(fig1, fig2, fig3, fig4, fig5, 
+             fig6, fig7, fig8, fig9, fig10, 
+             ncol = 3, nrow = 4)
+```
+
+O Gráfico de dispersão mostra uma aparente relação linear da variável `mpg` com as variáveis `(disp, hp, drat, wt, qsec e carb)`, nas demais essa relação tende a ser não linear.
+
+
+## Modelagem Estatística
+
+Utilizaremos nesse projeto um modelo de regressão linear múltiplo, sendo o nosso principal objetivo encontrar as variáveis que melhor explicam a eficiencia do veículo de acordo com suas características. A primeira tentativa será construindo um modelo que leva em consideração todas as variáveis explicativas.
+De acordo com James at al (2013), o modelo de regressão linear múltiplo é definido por:
+$$
+Y = β_0 + β_1X_1 + ... + β_pX_p + ε
+$$
+
+######### Sendo: 
+- Y: a variável respota; 
+- β0,…,βp: os parâmetros do modelo a serem estimados;
+- X1,…,Xp: as variáveis explicativas;
+- ε: o erro.
+
+
+######## **Modelo 1**
+
+```{r}
+modelo_1 = lm(mpg ~ ., data = mtcars)
+summary(modelo_1)
+```
+
+No modelo 1, podemos observar que apesar do R² alto, praticamente todas as variáveis possuem p-valores não significativos estatisticamente, ou seja, elas juntas não tem poder de explicação devido ao fato de existirem muitas variáveis correlacionadas entre si. Sendo assim, vamos então a segunda tentativa.
+
+
+######## **Modelo 2**
+
+```{r}
+modelo_2 = lm(mpg ~ drat + vs + wt + hp + cyl + disp , data = mtcars)
+summary(modelo_2)
+```
+
+No modelo 2, optamos por utilizar as variáveis `drat, vs, wt, hp, cyl e disp`, uma vez que, a matriz de correlação nos indicou uma forte correlação destas com a variável alvo `mpg`. Verificamos que apesar de `wt e hp` apresentarem estatisticamente uma representatividade significativa, as demais variáveis continuam com p-valores não significativos. Vamos a terceira tentativa.
+
+
+######## **Modelo 3**
+
+```{r}
+modelo_3 = lm(mpg ~ wt + hp, data = mtcars)
+summary(modelo_3)
+```
+
+No modelo 3, decidimos realizar o teste com `wt e hp`, e verificamos que apesar do R² ter apresentado um valor menor em relação aos testes anteriores, este mostra que 82% dos resultados podem ser explicados por este modelo quando consideramos o peso do carro (wt) e a potência (hp) como características que explicam a eficiencia do carro. No entanto, especialistas em mecânica acreditam que o tipo de transmissão `am` e o tipo de motor `vs` tem alguma influência na eficiência do automável. Sendo assim vamos analisar separadamente esses dois preditores no boxplot.
+
+```{r, fig.align='center'}
+# Box Plot
+fig1 <- mtcars %>% 
+  mutate(vs = as.factor(vs)) %>% 
+  ggplot(aes(x=vs, y=mpg)) +
+  geom_boxplot() +
+  labs(x = 'Tipo de motor (vs)', y = 'Consumo (mpg)') +
+  theme_classic()
+
+fig2 <- mtcars %>% 
+  mutate(am = as.factor(am)) %>%
+  ggplot(aes(x=am, y=mpg)) +
+  geom_boxplot() +
+  labs(x = 'Tipo de transmissão (am)', y = 'Consumo (mpg)') +
+  theme_classic()
+
+grid.arrange(fig1, fig2, ncol = 2, nrow = 1)
+```
+
+Nos boxplots, observamos que há uma possível diferença entre o tipo de motor em relação ao consumo do carro, bem como há também uma diferença entre o tipo de transmissão. Com base nessa análise, vamos a próxima tentativa. 
+
+
+######## **Modelo 4**
+
+```{r}
+modelo_4 = lm(mpg ~ wt + hp + vs + am, data = mtcars)
+summary(modelo_4)
+```
+
+No modelo 4, verificamos que a variável preditora `vs` não foi estatisticamente significante, já a variável `am` apresentou um significância fraca para o modelo. Vamos então testar a interação entre as variáveis **wt** e **am** a fim de observar o resultado obtido.
+
+
+######## **Modelo 5**
+
+```{r}
+modelo_5 = lm(mpg ~ hp + wt*am , data = mtcars)
+summary(modelo_5)
+```
+
+No modelo 5, notamos claramente que todas as variáveis preditoras são estatisticamente significativas, além disso conseguimos melhorar o nosso R² em relação ao modelo anterior e obtivemos um ganho de significância estatística nas variáveis de interação `wt:am`.  
+
+
+######## **Modelo 6**
+
+```{r}
+modelo_6 = lm(mpg ~ hp + wt*vs, data = mtcars)
+summary(modelo_6)
+```
+
+No modelo 6, o nosso R² é ainda melhor em relação ao modelo 5, verificamos que conseguimos um ganho de significância estatística nas variáveis `hp` e `wt` após fazermos a interação de `wt:vs`. Sendo assim, vamos fazer a análise residual no `modelo 5`  e `modelo 6`.
+
+
+
+## Análise Residual dos Modelos
+
+Para realizarmos a análise, vamos plotar alguns gráficos que nos ajudará na análise residual e conclusões referentes aos modelos 5 e 6.
+
+######## **Análise Residual - Modelo 5**
+
+```{r, fig.align="center"}
+# gráfico dos resíduos
+par(mfrow = c(2,2))
+plot(modelo_5)
+```
+
+O gráfico de **residuals vs fitted**, não mostra nenhum padrão, portanto a distribuição aleatória dos resíduos indica que temos um modelo saudável. Já no gráfico **normal Q-Q** vemos que os pontos não ficaram bem ajustados a reta. No **scale-location** os resíduos parecem estar espalhados de forma aleatória indicando a suposição de homocedasticidade onde a variância é constante. E por fim no gráfico de **residuals vs leverage** não há evidências de pontos de alavanca, pois todos os pontos estão dentro das bandas, ou seja, são menores que a distâcia de Cook.   
+
+
+######## **Teste de Heterocedasticidade - Modelo 5**
+
+```{r}
+# teste de Breusch-Pagan
+bptest(modelo_5)
+```
+
+A estatística de teste de Breusch-Pagan foi 2.9632 e o p-valor 0,564. Como o p-valor não é inferior a 0,05, rejeita-se a hipótese nula e conclui-se que não temos evidências suficientes para dizer que há heterocedasticidade no modelo de regressão.
+
+
+######## **Análise Residual - Modelo 6**
+
+```{r, fig.align="center"}
+# gráfico dos resíduos
+par(mfrow = c(2,2))
+plot(modelo_6)
+```
+O gráfico de **residuals vs fitted**, não mostra nenhum padrão, portanto a distribuição aleatória dos resíduos indica que temos um modelo saudável. Já no gráfico **normal Q-Q** vemos que os pontos ficaram melhor ajustados a reta. No **scale-location** os resíduos parecem estar espalhados de forma aleatória indicando a suposição de homocedasticidade onde a variância é constante. E por fim no gráfico de **residuals vs leverage** não há evidências de pontos de alavanca, pois todos os pontos estão dentro das bandas, ou seja, são menores que a distâcia de Cook.  
+
+
+######## **Teste de Heterocedasticidade - Modelo 6**
+
+```{r}
+# teste de Breusch-Pagan
+bptest(modelo_6)
+```
+
+A estatística de teste de Breusch-Pagan foi 5.7542 e o p-valor 0,2183. Como o p-valor não é inferior a 0,05, rejeita-se a hipótese nula e conclui-se que não temos evidências suficientes para dizer que há heterocedasticidade no modelo de regressão.
+
+
+## Conclusão e Discussão
+
+Com base nas análises residuais acima, decidimos escolher o **modelo 6** como o modelo mais adequado para explicar a variabiliade presente na eficiência dos carros. Observou-se também que todas as variáveis explicativas analisadas possuem correlação com a variável respota **mpg**. Também foi possível notar que ao combinarmos **wt** (peso) com as variáveis **am** (tipo de transmissão) e **vs** (tipo de motor), a interação entre **wt:vs** foi a que apresentou maior ganho nas métricas do nosso "the best" modelo.   
+
+######## **O modelo final ficou assim:**
+$$
+mpg = 31.810360 - 0.028187(hp) - 2.669334(wt) + 10.674035(vs) - 3.209825(wt*vs)
+$$
