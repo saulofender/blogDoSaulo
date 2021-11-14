@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>Blog do Saulo</title>
+    <link>www.linkedin.com/in/salomão-valentim-1118952a</link>
+    <atom:link href="www.linkedin.com/in/salomão-valentim-1118952a/index.xml" rel="self" type="application/rss+xml"/>
+    <description>Blog do Saulo
+</description>
+    <generator>Distill</generator>
+    <lastBuildDate>Sun, 14 Nov 2021 00:00:00 +0000</lastBuildDate>
+    <item>
+      <title>Regressão Linear com R</title>
+      <dc:creator>Saulo Valentim</dc:creator>
+      <link>www.linkedin.com/in/salomão-valentim-1118952a/posts/2021-11-13-projeto-regresso-linear-com-r</link>
+      <description>Análise das características do carro que explicam sua eficiência.</description>
+      <guid>www.linkedin.com/in/salomão-valentim-1118952a/posts/2021-11-13-projeto-regresso-linear-com-r</guid>
+      <pubDate>Sun, 14 Nov 2021 00:00:00 +0000</pubDate>
+      <media:content url="www.linkedin.com/in/salomão-valentim-1118952a/posts/2021-11-13-projeto-regresso-linear-com-r/projeto-regresso-linear-com-r_files/figure-html5/unnamed-chunk-3-1.png" medium="image" type="image/png" width="1152" height="1152"/>
+    </item>
+    <item>
+      <title>Post Poliglota</title>
+      <dc:creator>Saulo Valentim</dc:creator>
+      <link>www.linkedin.com/in/salomão-valentim-1118952a/posts/2021-04-07-exemplo-de-post-poliglota</link>
+      <description>Post que mostra que dá para trabalhar com R Python SQL e etc no mesmo lugar com R Markdown.</description>
+      <guid>www.linkedin.com/in/salomão-valentim-1118952a/posts/2021-04-07-exemplo-de-post-poliglota</guid>
+      <pubDate>Wed, 07 Apr 2021 00:00:00 +0000</pubDate>
+      <media:content url="www.linkedin.com/in/salomão-valentim-1118952a/posts/2021-04-07-exemplo-de-post-poliglota/exemplo-de-post-poliglota_files/figure-html5/unnamed-chunk-1-1.png" medium="image" type="image/png" width="1248" height="768"/>
+    </item>
+  </channel>
+</rss>

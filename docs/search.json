@@ -2,10 +2,10 @@
   "articles": [
     {
       "path": "index.html",
-      "title": "Blog do Saulo",
+      "title": "Data Science Posts",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-      "last_modified": "2021-11-14T12:34:15-03:00"
+      "last_modified": "2021-11-14T17:13:56-03:00"
     }
   ],
   "collections": ["posts/posts.json"]

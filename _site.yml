@@ -9,4 +9,9 @@ navbar:
       href: index.html
     - text: "About"
       href: about.html
+base_url: www.linkedin.com/in/salomão-valentim-1118952a
+collections:
+  posts:
+    disqus: blog-do-saulo
+    share: [linkedin]
 output: distill::distill_article

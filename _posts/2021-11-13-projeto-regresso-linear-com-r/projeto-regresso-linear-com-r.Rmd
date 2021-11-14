@@ -1,14 +1,15 @@
 ---
-title: "Projeto Regressão Linear com R"
+title: "Regressão Linear com R"
 description: |
   Análise das características do carro que explicam sua eficiência.
 author:
   - name: Saulo Valentim
     url: https://github.com/saulofender
-date: 2021-11-13
+date: 2021-11-14
 output:
   distill::distill_article:
     self_contained: false
+    toc: True
 ---
 
 
@@ -260,7 +261,7 @@ Para realizarmos a análise, vamos plotar alguns gráficos que nos ajudará na a
 
 ######## **Análise Residual - Modelo 5**
 
-```{r, fig.align="center"}
+```{r, fig.height= 5, fig.width= 8, fig.align="center"}
 # gráfico dos resíduos
 par(mfrow = c(2,2))
 plot(modelo_5)
@@ -281,7 +282,7 @@ A estatística de teste de Breusch-Pagan foi 2.9632 e o p-valor 0,564. Como o p-
 
 ######## **Análise Residual - Modelo 6**
 
-```{r, fig.align="center"}
+```{r, fig.height= 5, fig.width= 8, fig.align="center"}
 # gráfico dos resíduos
 par(mfrow = c(2,2))
 plot(modelo_6)
@@ -307,3 +308,6 @@ Com base nas análises residuais acima, decidimos escolher o **modelo 6** como o
 $$
 mpg = 31.810360 - 0.028187(hp) - 2.669334(wt) + 10.674035(vs) - 3.209825(wt*vs)
 $$
+
+
+Até a próxima !!!
