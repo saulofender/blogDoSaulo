@@ -1,0 +1,177 @@
+---
+title: "Deep Learning com R"
+description: |
+  Classificação de imagens com Keras e TensorFlow.
+author:
+  - name: Saulo Valentim
+    url: https://github.com/saulofender
+date: 2022-03-24
+output:
+  distill::distill_article:
+    self_contained: false
+    toc: True
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introdução
+
+Fashion-MNIST é um conjunto de dados treino com 60.000 imagens 28x28 de peças de roupas individuais em tons de cinza tendo 10 categorias, juntamente com um conjunto de 10.000 imagens para teste.
+
+O objetivo desse trabalho é criar um modelo de deeplearning usando Keras e TensorFlow para classificar imagens. Para isso iremos utilizar o **dataset_fashion_mnist()** que se encontra disponível no link: <https://keras.io/api/datasets/fashion_mnist/>.
+
+Descrição das categorias:\n\n     
+
+labels    | classe
+--------- | -------------
+0         | T-shirt/top
+1         | Trouser
+2         | Pullover
+3         | Dress 
+4         | Coat 
+5         | Sandal
+6         | Shirt 
+7         | Sneaker
+8         | Bag 4 
+9         | Ankle boot
+ 
+
+## Ajustando a base de dados
+
+O primeiro passo que precisamos fazer é ajustar e preparar a base de dados. Para isso, precisamos converter os valores dos pixels que são inteiros entre 0 e 255 para floats entre 0 e 1.
+
+```{r}
+# carregar pacote
+library(keras)
+library(ggplot2)
+
+base <- dataset_fashion_mnist()
+x <- array_reshape(base$train$x/255, dim = c(60000, 28, 28, 1))
+y <- to_categorical(base$train$y)
+
+# dimensão da base 
+dim(x)
+dim(y)
+```
+
+
+## Visualizando as imagens
+
+Agora vamos visualizar algumas imagens do nosso conjunto de dados que serão treinadas na rede neural.
+
+```{r, fig.dim= c(5,5)}
+# plotando as imagens
+par(mfcol=c(5,5))
+par(mar=c(0, 0, 1.5, 0), xaxs='i', yaxs='i')
+for (i in 1:25) { 
+  img <- x[i, , ,]
+  img <- t(apply(img, 2, rev)) 
+  image(1:28, 1:28, img, col = gray((0:255)/255), xaxt = 'n', yaxt = 'n')
+}
+```
+
+
+## Treinando o modelo
+
+Vamos definir os parâmetros para ajustar o modelo que será treinado. Primeiro definimos o input do modelo informando o shape onde cada observação é uma imagem 28x28 e 1 canal. Em seguida fazemos as convoluções com seus respectivos pesos e por fim, na última layer_dense colocamos o número de categorias, no nosso caso é 10 e a ativação softmax pois queremos que os valores fiquem entre 0 e 1.
+
+```{r}
+# parâmetros de entrada do modelo 
+input <- layer_input(shape = c(28, 28, 1))
+
+# Adicionando camadas ao modelo
+output <- input %>%
+
+  layer_conv_2d(kernel_size = c(3,3), filters = 32,
+                activation = "relu", padding = "same", use_bias = FALSE) %>%
+  layer_max_pooling_2d(pool_size = c(2,2)) %>%
+
+  layer_conv_2d(kernel_size = c(3,3), filters = 64,
+                activation = "relu", padding = "same", use_bias = FALSE) %>%
+  layer_max_pooling_2d(pool_size = c(2,2)) %>%
+  
+  layer_flatten() %>%
+  
+  layer_dropout(rate = 0.5) %>%
+  
+  layer_dense(10, activation = "softmax")
+
+# definindo o modelo 
+model <- keras_model(input, output)
+```
+
+Após definir o modelo, vamos ver as informações sobre camadas, número de parâmetros e etc, com a função summary().
+
+```{r}
+summary(model)
+```
+
+
+## Compilando o modelo
+
+Para compilar o modelo, vamos configurá-lo utilizando a função de perda categorical_crossentropy, o otimizador adam e a métrica de acurácia que iremos monitorar durante o treino.
+
+```{r}
+# compilando o modelo
+model %>%
+  compile(
+    loss = "categorical_crossentropy",
+    optimizer = optimizer_adam(),
+    metrics = "accuracy"
+  )
+```
+
+
+## Ajustando o modelo
+
+vamos usar o modelo para prever os labels do conjunto de teste através da função predict().
+
+```{r}
+# ajustando o modelo
+modelo <- model %>%
+  fit(x, y, batch_size = 128, epochs = 15, validation_split = 0.2)
+```
+
+![](C:/Users/USER/Documents/Github/blog_saulo/_posts/2022-03-24-projeto-deep-learning/imagem01.JPG){width="70%"}
+
+
+## Gráfico do histórico de treinamento
+
+![](C:/Users/USER/Documents/Github/blog_saulo/_posts/2022-03-24-projeto-deep-learning/imagem02.JPG){width="70%"}
+
+É importante salientar que loss e acc indicam a perda e acurácia do modelo para os dados de treinamento, enquanto val_loss e val_acc são as mesmas métricas para os dados de teste e de validação.
+
+######### Os resultados obtidos foram os seguintes: 
+- loss: 0.2390
+- val_loss: 0.2427
+- accuracy: 0.9143
+- val_accuracy: 0.9128
+
+
+## Predição do modelo
+
+Após o treinamento do modelo, já é possível realizarmos algumas previsões de algumas imagens. vamos imprimir a matriz de confusão para verificar as previsões e os labels dos dados com a função table().
+
+```{r}
+# predição do modelo
+y_pred <- predict(model, x)
+classes <- c(0:9)
+y_pred_class <- classes[apply(y_pred, 1, which.max)]
+
+# matriz de confusão
+table(base$train$y, y_pred_class)
+```
+
+
+## Salvando o modelo
+
+Com a função save_model_tf podemos salvar o nosso modelo para utilizarmos quando quisermos.
+
+```{r}
+save_model_tf(model, "modelo-fashion-mnist/")
+```
+
+**Até a próxima!!!**

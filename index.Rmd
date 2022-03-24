@@ -1,5 +1,5 @@
 ---
-title: "Data Science Post"
+title: "Data Science Posts"
 site: distill::distill_website
 listing: posts
 ---

@@ -7,7 +7,16 @@
     <description>Blog do Saulo
 </description>
     <generator>Distill</generator>
-    <lastBuildDate>Sun, 14 Nov 2021 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 24 Mar 2022 00:00:00 +0000</lastBuildDate>
+    <item>
+      <title>Deep Learning com R</title>
+      <dc:creator>Saulo Valentim</dc:creator>
+      <link>www.linkedin.com/in/salomão-valentim-1118952a/posts/2022-03-24-projeto-deep-learning</link>
+      <description>Classificação de imagens com Keras e TensorFlow.</description>
+      <guid>www.linkedin.com/in/salomão-valentim-1118952a/posts/2022-03-24-projeto-deep-learning</guid>
+      <pubDate>Thu, 24 Mar 2022 00:00:00 +0000</pubDate>
+      <media:content url="www.linkedin.com/in/salomão-valentim-1118952a/posts/2022-03-24-projeto-deep-learning/projeto-deep-learning_files/figure-html5/unnamed-chunk-2-1.png" medium="image" type="image/png" width="960" height="960"/>
+    </item>
     <item>
       <title>Regressão Linear com R</title>
       <dc:creator>Saulo Valentim</dc:creator>
